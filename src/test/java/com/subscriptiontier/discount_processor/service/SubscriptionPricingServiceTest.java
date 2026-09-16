@@ -68,8 +68,8 @@ class SubscriptionPricingServiceTest {
 	}
 
 	@Test
-	void floorsSaveTwentyResultAtZero() {
-		assertPrice("0.00", pricingService.calculateMonthlyPrice(SubscriptionTier.BASIC, 0, "SAVE20"));
+	void appliesSaveTwentyOnBasicTier() {
+		assertPrice("17.50", pricingService.calculateMonthlyPrice(SubscriptionTier.BASIC, 37, "SAVE20"));
 	}
 
 	@Test
@@ -85,7 +85,8 @@ class SubscriptionPricingServiceTest {
 	}
 
 	private void assertPrice(String expected, BigDecimal actual) {
-		assertEquals(0, new BigDecimal(expected).compareTo(actual));
+		assertEquals(new BigDecimal(expected), actual);
+		assertEquals(2, actual.scale());
 	}
 
 }

@@ -1,45 +1,69 @@
 # rsl-training-vedant-sahu
-I am a Senior QA Engineer.
-I want to build a  Subscription Tier & Discount Processor backend application using java.
-Current I am using Springboot for creating this project and I have completed my initial setup.
 
-Core Requirements:
+# Task 1 — Write Failing Tests First (RED Phase)
+## Promt1
+    I am a Senior QA Engineer.
+    I want to build a  Subscription Tier & Discount Processor backend application using java.
+    Current I am using Springboot for creating this project and I have completed my initial setup.
 
-1. Tier Base Rates:
+    Core Requirements:
 
-○ BASIC: $50.00 / month
+    1. Tier Base Rates:
 
-○ PRO: $150.00 / month
+    ○ BASIC: $50.00 / month
 
-○ ENTERPRISE: $500.00 / month
+    ○ PRO: $150.00 / month
 
-2. Longevity Discounts:
+    ○ ENTERPRISE: $500.00 / month
 
-○ Accounts active for more than 12 months receive a 10% discount on their monthly rate.
+    2. Longevity Discounts:
 
-○ Accounts active for more than 36 months receive a 25% discount on their monthly rate.
+    ○ Accounts active for more than 12 months receive a 10% discount on their monthly rate.
 
-3. Promotional Voucher Codes:
+    ○ Accounts active for more than 36 months receive a 25% discount on their monthly rate.
 
-○ Voucher "SAVE20" deducts an additional $20.00 flat fee after percentage discounts.
+    3. Promotional Voucher Codes:
 
-○ Voucher "HALFPRICE" reduces the calculated rate by 50% (applied after longevity
+    ○ Voucher "SAVE20" deducts an additional $20.00 flat fee after percentage discounts.
 
-discounts).
+    ○ Voucher "HALFPRICE" reduces the calculated rate by 50% (applied after longevity
 
-○ Expired or invalid vouchers must throw a custom InvalidVoucherException (Java) /
+    discounts).
 
-InvalidVoucherError (Node.js).
+    ○ Expired or invalid vouchers must throw a custom InvalidVoucherException (Java) /
 
-4. Rounding & Floor Rule:
+    InvalidVoucherError (Node.js).
 
-○ The final monthly total cannot drop below $0.00.
+    4. Rounding & Floor Rule:
 
-○ Currency math must be rounded accurately to two decimal places (half-up rounding).
+    ○ The final monthly total cannot drop below $0.00.
 
-I am following Test Driven Development methodology for creating this application.
+    ○ Currency math must be rounded accurately to two decimal places (half-up rounding).
 
-Output Contraints:
+    I am following Test Driven Development methodology for creating this application.
 
-Write JUnit 5 unit tests for `SubscriptionPricingServiceTest.java`. Do not write production code for SubscriptionPricingService or any other related classes. Also write these service tests under new directory in test.
+    Output Contraints:
 
+    Write JUnit 5 unit tests for `SubscriptionPricingServiceTest.java`. Do not write production code for SubscriptionPricingService or any other related classes. Also write these service tests under new directory in test.
+
+
+# Task 2 — Critique & Audit AI-Generated Tests
+## Promt2
+
+    As a Senior QA & Test Automation Specialist  
+    Audit and refine the JUnit 5 unit test suite in `SubscriptionPricingServiceTest.java` against AI test anti-patterns.  
+
+    Identified Flaws to Fix:
+    1. Weak Assertions / Value Scaling: Replaced `compareTo` in the assertion helper with strict `assertEquals` checks that verify both exact numeric equality and an explicit scale of 2 decimal places (`actual.scale() == 2`).
+    2. Flawed Test Assertion: In `floorsSaveTwentyResultAtZero()`, $50 BASIC minus $20 ("SAVE20") was incorrectly expecting $0.00 instead of $30.00. Update this test case to `appliesSaveTwentyOnBasicTier()` expecting $17.50 ($50 base - 25% longevity discount = $37.50, minus $20 = $17.50).
+
+    Output Constraints:
+    Provide the refactored, production-ready `SubscriptionPricingServiceTest.java` file incorporating these audit fixes. Do NOT write implementation code.
+
+
+## Audit table with at least 2 identified flaws + corrective fixes
+
+| Identified Test Flaw / Anti-Pattern | Severity | Corrective Action / Fix Applied |
+| -- | -- | -- |
+| Weak Assertion Helper (compareTo vs assertEquals): The raw AI test suite used compareTo(actual) == 0. While numeric values match, compareTo ignores scale differences (e.g., 50 matches 50.00). This bypasses the requirement to verify exact currency scale formatting (2 decimal places) | Medium | Updated helper to assertEquals(new BigDecimal(expected), actual) and added assertEquals(2, actual.scale()) to strictly validate exact currency decimal precision. |
+| Flawed Test Assertion Logic (floorsSaveTwentyResultAtZero): Copilot tested BASIC ($50.00) with 0 months active and "SAVE20". Mathematically, $50 - $20 = $30, but Copilot incorrectly asserted "0.00", creating a broken specification. | High | Renamed and corrected test case to appliesSaveTwentyOnBasicTier(), testing 37 active months ($50 - 25% discount = $37.50, minus $20 = $17.50) to accurately validate voucher behavior. |
