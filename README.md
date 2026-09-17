@@ -87,3 +87,18 @@ Please look again for Core Requirements provided in my initial and stickly align
 			price = price.multiply(TEN_PERCENT_DISCOUNT);
 		}
 In above AI provided implemnetation, if active months are exactly 36 then it will not get any discount, but it should be eligible to get a discount as per more than 12 month.
+
+# Task 4 — Refactor Safely Under Test Shield (REFACTOR Phase)
+## Promt4
+Role: Senior Java Developer
+
+Refactor SubscriptionPricingService.java to improve code structure, readability, and encapsulation without altering any business logic or behavioral contracts.
+
+Refactoring Requirements:
+
+1. Extract input validation into a private validateInputs helper method.
+2. Extract discount logic into single-responsibility private helper methods (applyLongevityDiscount, applyVoucher).
+3. Preserve all current boundary conditions, constants, switch expressions, and BigDecimal rounding behavior exactly as they are.
+
+Constraint: Do NOT alter SubscriptionPricingServiceTest.java. All existing unit tests must remain 100% green.
+Also create a seperate directory for keeping exception classes and enum classes. They should not be under the service directory.

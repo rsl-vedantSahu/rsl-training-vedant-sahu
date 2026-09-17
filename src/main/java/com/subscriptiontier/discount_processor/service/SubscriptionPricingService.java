@@ -3,6 +3,9 @@ package com.subscriptiontier.discount_processor.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import com.subscriptiontier.discount_processor.enums.SubscriptionTier;
+import com.subscriptiontier.discount_processor.exception.InvalidVoucherException;
+
 public class SubscriptionPricingService {
 
 	private static final int CURRENCY_SCALE = 2;
@@ -15,25 +18,32 @@ public class SubscriptionPricingService {
 	private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(CURRENCY_SCALE);
 
 	public BigDecimal calculateMonthlyPrice(SubscriptionTier tier, int activeMonths, String voucherCode) {
+		validateInputs(tier, activeMonths);
+
+		BigDecimal price = applyLongevityDiscount(tier.monthlyRate(), activeMonths);
+		if (voucherCode != null) {
+			price = applyVoucher(price, voucherCode);
+		}
+
+		return price.max(ZERO).setScale(CURRENCY_SCALE, RoundingMode.HALF_UP);
+	}
+
+	private void validateInputs(SubscriptionTier tier, int activeMonths) {
 		if (tier == null) {
 			throw new IllegalArgumentException("Subscription tier is required");
 		}
 		if (activeMonths < 0) {
 			throw new IllegalArgumentException("Active months cannot be negative");
 		}
+	}
 
-		BigDecimal price = tier.monthlyRate();
+	private BigDecimal applyLongevityDiscount(BigDecimal price, int activeMonths) {
 		if (activeMonths > THIRTY_SIX_MONTHS) {
 			price = price.multiply(TWENTY_FIVE_PERCENT_DISCOUNT);
 		} else if (activeMonths > TWELVE_MONTHS && activeMonths < THIRTY_SIX_MONTHS) {
 			price = price.multiply(TEN_PERCENT_DISCOUNT);
 		}
-
-		if (voucherCode != null) {
-			price = applyVoucher(price, voucherCode);
-		}
-
-		return price.max(ZERO).setScale(CURRENCY_SCALE, RoundingMode.HALF_UP);
+		return price;
 	}
 
 	private BigDecimal applyVoucher(BigDecimal price, String voucherCode) {

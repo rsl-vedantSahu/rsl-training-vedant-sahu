@@ -1,4 +1,4 @@
-package com.subscriptiontier.discount_processor.service;
+package com.subscriptiontier.discount_processor.exception;
 
 public class InvalidVoucherException extends RuntimeException {
 

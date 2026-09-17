@@ -1,4 +1,4 @@
-package com.subscriptiontier.discount_processor.service;
+package com.subscriptiontier.discount_processor.enums;
 
 import java.math.BigDecimal;
 
@@ -13,7 +13,7 @@ public enum SubscriptionTier {
 		this.monthlyRate = monthlyRate;
 	}
 
-	BigDecimal monthlyRate() {
+	public BigDecimal monthlyRate() {
 		return monthlyRate;
 	}
 }
