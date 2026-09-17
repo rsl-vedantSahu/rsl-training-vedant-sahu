@@ -67,3 +67,23 @@
 | -- | -- | -- |
 | Weak Assertion Helper (compareTo vs assertEquals): The raw AI test suite used compareTo(actual) == 0. While numeric values match, compareTo ignores scale differences (e.g., 50 matches 50.00). This bypasses the requirement to verify exact currency scale formatting (2 decimal places) | Medium | Updated helper to assertEquals(new BigDecimal(expected), actual) and added assertEquals(2, actual.scale()) to strictly validate exact currency decimal precision. |
 | Flawed Test Assertion Logic (floorsSaveTwentyResultAtZero): Copilot tested BASIC ($50.00) with 0 months active and "SAVE20". Mathematically, $50 - $20 = $30, but Copilot incorrectly asserted "0.00", creating a broken specification. | High | Renamed and corrected test case to appliesSaveTwentyOnBasicTier(), testing 37 active months ($50 - 25% discount = $37.50, minus $20 = $17.50) to accurately validate voucher behavior. |
+
+
+# Task 3 — Implement Against Tests (GREEN Phase)
+## Promt3
+Act as a Senior Software Engineer and write the minimun implemnetation required to pass the tests of SubscriptionPricingServiceTest. i.e Production grade code for SubscriptionPricingService, SubscriptionTier, InvalidVoucherException and other necessary code to full fill the business requirements as mentioned earlier in detail which are
+1. Tier Base Rates
+2. Longevity Discounts
+3. Promotional Voucher Codes
+4. Rounding & Floor Rule
+
+Please look again for Core Requirements provided in my initial and stickly align our code to the mentioned details in it. Also create a sub directories if required for code seperation.
+
+## Bug Identified
+
+	if (activeMonths > THIRTY_SIX_MONTHS) {
+			price = price.multiply(TWENTY_FIVE_PERCENT_DISCOUNT);
+		} else if (activeMonths > TWELVE_MONTHS && activeMonths < THIRTY_SIX_MONTHS) {
+			price = price.multiply(TEN_PERCENT_DISCOUNT);
+		}
+In above AI provided implemnetation, if active months are exactly 36 then it will not get any discount, but it should be eligible to get a discount as per more than 12 month.
