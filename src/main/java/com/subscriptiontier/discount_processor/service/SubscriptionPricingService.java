@@ -40,7 +40,7 @@ public class SubscriptionPricingService {
 	private BigDecimal applyLongevityDiscount(BigDecimal price, int activeMonths) {
 		if (activeMonths > THIRTY_SIX_MONTHS) {
 			price = price.multiply(TWENTY_FIVE_PERCENT_DISCOUNT);
-		} else if (activeMonths > TWELVE_MONTHS && activeMonths < THIRTY_SIX_MONTHS) {
+		} else if (activeMonths > TWELVE_MONTHS) {
 			price = price.multiply(TEN_PERCENT_DISCOUNT);
 		}
 		return price;

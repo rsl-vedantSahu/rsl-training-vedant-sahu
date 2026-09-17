@@ -1,4 +1,4 @@
-# rsl-training-vedant-sahu
+# Subscription Tier & Discount Processor
 
 # Task 1 — Write Failing Tests First (RED Phase)
 ## Promt1
@@ -102,3 +102,22 @@ Refactoring Requirements:
 
 Constraint: Do NOT alter SubscriptionPricingServiceTest.java. All existing unit tests must remain 100% green.
 Also create a seperate directory for keeping exception classes and enum classes. They should not be under the service directory.
+
+# Task 5 — Adversarial Edge Case Expansion
+## Promt5
+Act as a Adversarial QA & Test Automation Specialist.
+Expand SubscriptionPricingServiceTest with JUnit 5 Parameterized Tests to validate critical boundary conditions, zero-clamping rules, and invalid input scenarios.
+- 36-Month Boundary:Verify that exactly 36 months receives the 10% discount  and 37 months receives 25%.
+- Negative Active Months: Verify that passing negative active months throws an IllegalArgumentException.
+- Null Subscription Tier: Verify that passing null for SubscriptionTier throws an IllegalArgumentException.
+- Parameterized Boundary Verification: Use @ParameterizedTest with @CsvSource to test boundary transitions across 12, 13, 36, and 37 months.
+
+Also, provide a brief engineering justification for each of the 4 added edge cases.
+
+## Engineering Justification:
+
+- 12/13/36/37 boundaries: Prevents off-by-one errors at both longevity thresholds.
+- Negative months: Rejects invalid account state instead of calculating nonsensical prices.
+- Null tier: Prevents null dereferences and enforces a valid pricing input.
+- Non-negative voucher results: Verifies valid pricing never returns a negative amount. With current tier rates and the $20 voucher, the zero clamp is not reachable because the minimum result is $30.00.
+
