@@ -1,0 +1,67 @@
+# =========================================================================
+# Java & Maven Core
+# =========================================================================
+
+# Compiled Java class files
+*.class
+
+# Log files
+*.log
+
+# Package Files (Uncomment if you do not want to track packaged binaries)
+# *.jar
+# *.war
+# *.nar
+# *.ear
+# *.zip
+# *.tar.gz
+
+# Crash logs
+hs_err_pid*
+replay_pid*
+
+# Maven build directory
+target/
+
+# Maven release plugin files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Avoid ignoring Maven wrapper jar file if you are using Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
+
+# =========================================================================
+# IDEs and Editors
+# =========================================================================
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.shelf/
+
+### Eclipse ###
+.metadata/
+.classpath
+.project
+.settings/
+*.launch
+.factorypath
+.springBeans
+
+### Visual Studio Code ###
+.vscode/
+
+# =========================================================================
+# Operating System Files
+# =========================================================================
+.DS_Store
+Thumbs.db
