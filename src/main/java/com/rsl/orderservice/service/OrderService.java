@@ -1,5 +1,6 @@
 package com.rsl.orderservice.service;
 
+import com.rsl.orderservice.model.CouponValidationResult;
 import com.rsl.orderservice.model.Customer;
 import com.rsl.orderservice.model.Order;
 import com.rsl.orderservice.model.OrderItem;
@@ -76,6 +77,12 @@ public class OrderService {
 
         int subtotal = pricingService.subtotalCents(order);
         int discount = discountService.discountCents(subtotal, customer, couponCode);
+
+        if (couponCode != null && !couponCode.isBlank()) {
+            CouponValidationResult validation = discountService.validateCoupon(couponCode);
+            order.setCouponApplied(validation.isValid());
+            order.setCouponMessage(validation.getMessage());
+        }
 
         order.setSubtotalCents(subtotal);
         order.setDiscountCents(discount);

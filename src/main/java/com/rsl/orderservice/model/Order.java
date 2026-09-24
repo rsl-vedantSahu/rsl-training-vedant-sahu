@@ -15,6 +15,8 @@ public class Order {
     private int discountCents;
     private int totalCents;
     private String couponCode;
+    private boolean couponApplied;
+    private String couponMessage;
 
     public Order(String id, Customer customer) {
         this.id = id;
@@ -77,10 +79,27 @@ public class Order {
         this.couponCode = couponCode;
     }
 
+    public boolean isCouponApplied() {
+        return couponApplied;
+    }
+
+    public void setCouponApplied(boolean couponApplied) {
+        this.couponApplied = couponApplied;
+    }
+
+    public String getCouponMessage() {
+        return couponMessage;
+    }
+
+    public void setCouponMessage(String couponMessage) {
+        this.couponMessage = couponMessage;
+    }
+
     @Override
     public String toString() {
         return "Order{" + id + ", " + customer.getName() + ", " + status
                 + ", subtotal=" + subtotalCents + "c, discount=" + discountCents
-                + "c, total=" + totalCents + "c}";
+                + "c, total=" + totalCents + "c"
+                + (couponCode != null ? ", couponApplied=" + couponApplied + ", couponMessage='" + couponMessage + '\'' : "") + "}";
     }
 }

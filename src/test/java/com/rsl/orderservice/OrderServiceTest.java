@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OrderServiceTest {
@@ -30,6 +31,7 @@ class OrderServiceTest {
         ProductRepository products = new ProductRepository();
         OrderRepository orders = new OrderRepository();
         CouponRepository coupons = new CouponRepository();
+        coupons.save(new Coupon("SAVE10", 10));
 
         products.save(new Product("BOOK-001", "Clean Code", 3200, "books"));
         InventoryService inventory = new InventoryService();
@@ -52,6 +54,34 @@ class OrderServiceTest {
         assertEquals(OrderStatus.CONFIRMED, order.getStatus());
         assertEquals(6400, order.getSubtotalCents());
         assertTrue(orderService.getOrder("ORD-1") != null, "order should be saved");
+    }
+
+    @Test
+    void placeOrderWithValidCouponSetsFeedbackMessage() {
+        Customer bob = new Customer("C-2", "Bob", false);
+
+        Order order = orderService.placeOrder(
+                "ORD-2", bob,
+                List.<String[]>of(new String[]{"BOOK-001", "1"}),
+                "SAVE10");
+
+        assertTrue(order.isCouponApplied());
+        assertNotNull(order.getCouponMessage());
+        assertTrue(order.getCouponMessage().contains("SAVE10"));
+    }
+
+    @Test
+    void placeOrderWithInvalidCouponSetsFailureFeedbackMessage() {
+        Customer bob = new Customer("C-2", "Bob", false);
+
+        Order order = orderService.placeOrder(
+                "ORD-3", bob,
+                List.<String[]>of(new String[]{"BOOK-001", "1"}),
+                "BLACKFRIDAY");
+
+        assertFalse(order.isCouponApplied());
+        assertNotNull(order.getCouponMessage());
+        assertTrue(order.getCouponMessage().contains("invalid or expired"));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.rsl.orderservice.service;
 
 import com.rsl.orderservice.model.Coupon;
+import com.rsl.orderservice.model.CouponValidationResult;
 import com.rsl.orderservice.model.Customer;
 import com.rsl.orderservice.repository.CouponRepository;
 import com.rsl.orderservice.util.AppLogger;
@@ -27,6 +28,28 @@ public class DiscountService {
     }
 
     /**
+     * Validate a coupon code before or during order submission.
+     *
+     * @param couponCode the coupon code to validate
+     * @return validation result containing status, message, and discount percentage
+     */
+    public CouponValidationResult validateCoupon(String couponCode) {
+        if (couponCode == null || couponCode.isBlank()) {
+            return new CouponValidationResult(false, "No coupon code provided", 0);
+        }
+        Coupon coupon = couponRepository.findByCode(couponCode);
+        if (coupon != null) {
+            return new CouponValidationResult(true,
+                    "Coupon '" + couponCode + "' applied successfully (" + coupon.getPercentOff() + "% off)",
+                    coupon.getPercentOff());
+        } else {
+            return new CouponValidationResult(false,
+                    "Coupon code '" + couponCode + "' is invalid or expired",
+                    0);
+        }
+    }
+
+    /**
      * Work out the total discount, in cents, for an order subtotal.
      *
      * <p>Rules:</p>
@@ -49,8 +72,12 @@ public class DiscountService {
 
         if (couponCode != null && !couponCode.isBlank()) {
             Coupon coupon = couponRepository.findByCode(couponCode);
-            log.info("Applying coupon '" + couponCode + "' -> " + coupon.getPercentOff() + "%");
-            percent += coupon.getPercentOff();
+            if (coupon != null) {
+                log.info("Applying coupon '" + couponCode + "' -> " + coupon.getPercentOff() + "%");
+                percent += coupon.getPercentOff();
+            } else {
+                log.warning("Coupon code '" + couponCode + "' not found; ignoring coupon.");
+            }
         }
 
         return pricingService.percentageDiscountCents(subtotalCents, percent);
