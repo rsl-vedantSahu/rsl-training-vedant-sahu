@@ -1,0 +1,7 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    com.leavemanagement.leave_management: DEBUG
+    org.springframework.web: INFO

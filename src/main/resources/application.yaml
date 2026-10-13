@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: leave-management
+  profiles:
+    active: dev
