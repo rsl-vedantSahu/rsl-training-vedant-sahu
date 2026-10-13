@@ -1,1 +1,0 @@
-# rsl-training-vedant-sahu
