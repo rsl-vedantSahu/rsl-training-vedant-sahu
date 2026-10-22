@@ -1,0 +1,14 @@
+# Task 6: Backup and Restore Commands
+
+# 1. Back up database 'company_advanced' to archive 'company_advanced.archive' using gzip compression:
+mongodump --db=company_advanced --archive=company_advanced.archive --gzip
+
+# 2. Restore archive into a new database named 'company_advanced_restore':
+mongorestore --nsInclude="company_advanced.*" --nsFrom="company_advanced.*" --nsTo="company_advanced_restore.*" --archive=company_advanced.archive --gzip
+
+# 3. Verification in mongosh:
+# use company_advanced_restore
+# show collections
+# db.employees.countDocuments()     # Expected: 4
+# db.departments.countDocuments()   # Expected: 2
+# db.sessions.countDocuments()      # Expected: 1
