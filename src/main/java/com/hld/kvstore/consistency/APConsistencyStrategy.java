@@ -43,13 +43,19 @@ public class APConsistencyStrategy implements ConsistencyStrategy {
 
     @Override
     public Optional<String> handleRead(String key, ClusterNode preferredNode, ClusterNode fallbackNode) {
-        // TODO: implement AP read behavior described above.
-        throw new UnsupportedOperationException("TODO: implement handleRead (AP)");
+        try {
+            return preferredNode.get(key);
+        } catch (NodeUnreachableException e) {
+            return fallbackNode.get(key);
+        }
     }
 
     @Override
     public void handleWrite(String key, String value, ClusterNode preferredNode) {
-        // TODO: implement AP write behavior described above.
-        throw new UnsupportedOperationException("TODO: implement handleWrite (AP)");
+        try {
+            preferredNode.put(key, value);
+        } catch (NodeUnreachableException e) {
+            // Accepted-but-degraded write: leader unreachable
+        }
     }
 }

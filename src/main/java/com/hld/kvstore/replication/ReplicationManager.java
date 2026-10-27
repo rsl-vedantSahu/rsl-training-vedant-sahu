@@ -50,11 +50,12 @@ public class ReplicationManager {
      */
     public void replicate(String key, String value, List<ClusterNode> followers, ReplicationMode mode) {
         if (mode == ReplicationMode.SYNCHRONOUS) {
-            // TODO (required): for each follower — record start time,
-            // follower.put(key, value), record elapsed time, add a
-            // ReplicationLogEntry to `log`. All of this must happen
-            // before replicate() returns.
-            throw new UnsupportedOperationException("TODO: implement synchronous replication");
+            for (ClusterNode follower : followers) {
+                long start = System.currentTimeMillis();
+                follower.put(key, value);
+                long elapsed = System.currentTimeMillis() - start;
+                log.add(new ReplicationLogEntry(key, follower.getId(), ReplicationMode.SYNCHRONOUS, elapsed));
+            }
         } else {
             // TODO (stretch goal, optional): submit a task to
             // asyncExecutor that does the same follower.put(...) +
