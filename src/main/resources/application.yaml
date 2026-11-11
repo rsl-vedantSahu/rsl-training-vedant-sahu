@@ -1,3 +1,17 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: order-processing
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        acknowledge-mode: manual   # autoAck = false (Manual Acknowledgments)
+        prefetch: 1                # Fair Dispatch (prefetch_count = 1)
+        default-requeue-rejected: false
