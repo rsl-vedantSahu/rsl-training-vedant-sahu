@@ -1,0 +1,13 @@
+services:
+  ems-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ems-web-app:compose
+    container_name: ems-web-compose
+    ports:
+      - "8080:80"
+    environment:
+      - APP_ENV=production
+      - VITE_APP_TITLE=EMS_Portal
+    restart: always
