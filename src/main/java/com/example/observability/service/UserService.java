@@ -6,91 +6,171 @@ import com.example.observability.entity.User;
 import com.example.observability.exception.DuplicateEmailException;
 import com.example.observability.exception.UserNotFoundException;
 import com.example.observability.repository.UserRepository;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.DoubleHistogram;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service layer that contains business logic for User operations.
- *
- * NOTE: This class includes TODO comments marking where candidates should add
- * manual observability instrumentation (spans, metrics, logs) as part of the
- * assignment. The skeleton intentionally does not contain any observability
- * libraries or runtime configuration.
+ * Service layer containing business logic for User operations,
+ * instrumented with OpenTelemetry Tracing, Metrics, and correlated Logging.
  */
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
+    private final Tracer tracer;
+    private final LongCounter operationCounter;
+    private final DoubleHistogram operationDuration;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+
+        // Initialize OpenTelemetry Tracer
+        this.tracer = GlobalOpenTelemetry.getTracer("crud-otel-application", "1.0.0");
+
+        // Initialize OpenTelemetry Meter and Custom Metrics
+        Meter meter = GlobalOpenTelemetry.getMeter("crud-otel-application");
+        this.operationCounter = meter.counterBuilder("users.operation.count")
+                .setDescription("Counts user operations by type and status")
+                .setUnit("1")
+                .build();
+        this.operationDuration = meter.histogramBuilder("users.operation.duration")
+                .setDescription("Measures duration of user operations")
+                .setUnit("ms")
+                .build();
     }
 
     /**
      * Create a new user.
-     *
-     * This is the primary manual-instrumentation target for the assignment.
-     * Candidates should add a manual span around this method when implementing
-     * observability.
+     * Wrapped with manual span 'create-user' and records metrics and logs.
      *
      * @param request request containing name and email
      * @return created user response
      */
     @Transactional
     public UserResponse createUser(UserRequest request) {
-        // TODO: Observability instrumentation point (candidate task)
-        // - Add business-level spans/metrics/logs as appropriate for monitoring
-        // - Capture meaningful attributes (e.g., user.id, operation.name)
-        // - Record operation counts, durations, and failures
-        // NOTE: This skeleton intentionally does not include observability libraries or agent configuration.
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateEmailException("Email already exists: " + request.getEmail());
+        long startTime = System.nanoTime();
+        log.info("operation=create status=started name={} email={}", request.getName(), request.getEmail());
+
+        Span span = tracer.spanBuilder("create-user")
+                .setAttribute("operation.name", "create")
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new DuplicateEmailException("Email already exists: " + request.getEmail());
+            }
+
+            User user = new User();
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+
+            User saved = userRepository.save(user);
+
+            // Record user.id attribute on the span as required
+            span.setAttribute("user.id", String.valueOf(saved.getId()));
+
+            recordMetrics("create", "success", startTime);
+            log.info("operation=create status=succeeded user.id={}", saved.getId());
+            return toResponse(saved);
+        } catch (Exception e) {
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
+            recordMetrics("create", "error", startTime);
+            log.error("operation=create status=failed error={}", e.getMessage());
+            throw e;
+        } finally {
+            span.end();
         }
-
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-
-        User saved = userRepository.save(user);
-        return toResponse(saved);
     }
 
     /**
      * Retrieve a user by id.
-     *
-     * This endpoint is a primary target for automatic instrumentation verification —
-     * candidates should run the application with their chosen instrumentation tooling
-     * to verify that HTTP, controller and JDBC/framework-level spans are generated automatically.
+     * NOTE: As required, this method has NO manual span so that only the automatic
+     * HTTP server span is captured. It records metrics and logs.
      *
      * @param id user id
      * @return user response
      */
     @Transactional(readOnly = true)
     public UserResponse getUser(Long id) {
-        // TODO: Auto-instrumentation verification target
-        // - Configure OpenTelemetry Java Agent externally to verify automatic spans
-        // - Do NOT create duplicate manual HTTP spans for this endpoint in the skeleton
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-        return toResponse(user);
+        long startTime = System.nanoTime();
+        log.info("operation=get status=started user.id={}", id);
+
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+
+            recordMetrics("get", "success", startTime);
+            log.info("operation=get status=succeeded user.id={}", id);
+            return toResponse(user);
+        } catch (Exception e) {
+            recordMetrics("get", "error", startTime);
+            log.error("operation=get status=failed user.id={} error={}", id, e.getMessage());
+            throw e;
+        }
     }
 
     /**
      * Delete a user by id.
-     *
-     * This operation is intended to demonstrate coexistence of automatic and
-     * manual instrumentation: framework-level tooling may produce the top-level HTTP span
-     * while the candidate can add a business-level span around the delete operation.
+     * Wrapped with manual span 'delete-user' which co-exists as a child span
+     * under the automatic HTTP DELETE server span.
      *
      * @param id user id
      */
     @Transactional
     public void deleteUser(Long id) {
-        // TODO: Observability instrumentation point (candidate task)
-        // - Use a business-level span/metric around the delete operation if desired
-        // - Record metrics and logs to capture operation success/failure and duration
-        // NOTE: This skeleton intentionally does not include observability libraries or agent configuration.
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-        userRepository.delete(user);
+        long startTime = System.nanoTime();
+        log.info("operation=delete status=started user.id={}", id);
+
+        Span span = tracer.spanBuilder("delete-user")
+                .setAttribute("operation.name", "delete")
+                .setAttribute("user.id", String.valueOf(id))
+                .startSpan();
+
+        try (Scope scope = span.makeCurrent()) {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+            userRepository.delete(user);
+
+            recordMetrics("delete", "success", startTime);
+            log.info("operation=delete status=succeeded user.id={}", id);
+        } catch (Exception e) {
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
+            recordMetrics("delete", "error", startTime);
+            log.error("operation=delete status=failed user.id={} error={}", id, e.getMessage());
+            throw e;
+        } finally {
+            span.end();
+        }
+    }
+
+    /**
+     * Helper method to record operation metrics.
+     * Note: user.id is intentionally omitted to avoid high-cardinality metric issues.
+     */
+    private void recordMetrics(String operation, String status, long startTimeNanos) {
+        long durationMs = (System.nanoTime() - startTimeNanos) / 1_000_000;
+        Attributes attributes = Attributes.of(
+                AttributeKey.stringKey("operation"), operation,
+                AttributeKey.stringKey("status"), status
+        );
+        operationCounter.add(1, attributes);
+        operationDuration.record(durationMs, attributes);
     }
 
     /**
