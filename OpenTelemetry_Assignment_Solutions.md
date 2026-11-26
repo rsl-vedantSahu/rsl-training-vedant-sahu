@@ -235,6 +235,8 @@ logging.pattern.level=%5p [trace_id=%X{trace_id} span_id=%X{span_id}]
 ### a. Trace Hierarchy Evidence (Automatic HTTP + Manual Service Span)
 For `DELETE /users/1`, the OpenTelemetry Java Agent captures the parent HTTP server span `DELETE /users/{id}`, while `UserService.deleteUser()` generates the child span `delete-user`. Both spans share the exact same `trace_id`.
 
+![Screenshot 1: Trace Evidence](screenshots/image1.png)
+
 ```
 Trace ID: 509d0baa3e7f1cd49a56c52b2df809f9
 └── [automatic] 'DELETE /users/{id}' (SERVER, Tomcat) - Span ID: c01b4e25e7a668ae, Status: 204
@@ -283,6 +285,8 @@ Trace ID: 37876de2be8871da32ee0cc19d029469
 
 ### c. Metrics Evidence (Operation Count & Duration)
 
+![Screenshot 2: Metrics Evidence](screenshots/image2.png)
+
 #### 1. Counter: `users.operation.count`
 Attributes strictly adhere to the cardinality constraint: bounded dimensions `operation` (`create`, `get`, `delete`) and `status` (`success`, `error`), omitting `user.id`.
 
@@ -316,6 +320,8 @@ points=[
 ---
 
 ### d. Correlated Logs Evidence (Trace & Span Correlation)
+
+![Screenshot 3: Log Evidence](screenshots/image3.png)
 
 Application logs demonstrate correlation with trace context via MDC:
 
